@@ -1,0 +1,87 @@
+---
+output: pdf_document
+---
+Coursera Satistical Inference - Course Project PART 2
+======================================================
+Author: Dino Chioda
+Date: May 23, 2015
+
+# Overview
+In this project, which is the second part of the Course Project for the Statistical Inference course, we're going to analyze the ToothGrowth data in the R datasets package. We will provide a basic summary of the data ans use confidence intervals to test hypotheses for tooth growth by supplement and dose.
+
+## Question 1: Load the ToothGrowth data and perform some basic exploratory data analyses
+```{r echo=TRUE}
+# Load the data
+library(datasets)
+data(ToothGrowth)
+
+# Look at the data
+nrow(ToothGrowth)
+str(ToothGrowth)
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+str(ToothGrowth)
+```
+
+
+## Question 2: Provide a baisc summary of the data
+
+Using the `summary()` R function on the ToothGrowth dataset yields: 
+```{r echo=FALSE}
+summary(ToothGrowth)
+```
+
+Let's generate some basic box plots to gain a better understand of how the data behaves:
+```{r}
+library(ggplot2)
+ggplot(aes(x=dose, y=len), data=ToothGrowth) + geom_boxplot(aes(fill=dose)) +
+        ggtitle("Tooth Length by Dosage")
+ggplot(aes(x=supp, y=len), data=ToothGrowth) + geom_boxplot(aes(fill=supp)) + 
+        ggtitle("Tooth Length by Supplement")
+```
+
+## Question 3: Use confidence intervals and hypothesis tests to compare tooth growth by supp and dose.
+
+Consider the following hypothesis:
+
+$H_0$: Supplements have no effect on tooth length
+
+$H_A$: Supplements have an effect on tooth length
+
+We will use a t-test to assess that the $H_0$ is true.
+```{r}
+t.test(len~supp, ToothGrowth)
+```
+The p-value of the t-test is **0.06**. Therefore, we cannot reject the null hypothesis.
+
+Consider the following hypothesis:
+
+$H_0$: Increasing the dosage has no effect on tooth length
+
+$H_A$: Increasing the dosage has an effect on tooth length
+
+Since we have 3 distinct dosages, we have 3 possible dosage pairs to consider. Therefore, we will perform a t-test on each of the dosage pairings. Let's begin by subsetting by dosage pairings: 0.5 & 1.0, 0.5 & 2.0, 1.0 & 2.0:
+```{r}
+ToothGrowth.doses_0.5_1.0 <- subset (ToothGrowth, dose %in% c(0.5, 1.0)) 
+ToothGrowth.doses_0.5_2.0 <- subset (ToothGrowth, dose %in% c(0.5, 2.0)) 
+ToothGrowth.doses_1.0_2.0 <- subset (ToothGrowth, dose %in% c(1.0, 2.0))
+```
+
+Let's perform the 3 t-tests to validate $H_0$:
+```{r}
+t.test(len ~ dose, data = ToothGrowth.doses_0.5_1.0)
+t.test(len ~ dose, data = ToothGrowth.doses_0.5_2.0)
+t.test(len ~ dose, data = ToothGrowth.doses_1.0_2.0)
+```
+
+Since all 3 p-values are less than 0.05 and the confidence intervals do not contain 0, we can reject $H_0$ and state that increasing the dosage leads to increased tooth length.
+
+## Question 4: State you conclusions and the assumptions needed for your conclusions.
+
+###Conclusions
+1. Supplement type does not seem to have an effect on tooth length.
+2. Increasing dosage levels does appear to lead to increased tooth length.
+
+### Assumptions
+1. The sample population of guinea pigs is representative of the entire population of guinea pigs tested.
+2. The sample population of guinea pigs were randomly selected.
+3. All dosage pair subset considered have the same variance. 
